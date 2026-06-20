@@ -1,0 +1,91 @@
+:root {
+  --border-color: rgba(128,128,128,0.2);
+  --text: #000;
+  --input-text: #000;
+  --input-bg: rgb(240, 240, 245);
+  --bg: #fff;
+  --select-bg: #fff;
+  --select-highlight-bg: rgba(180, 180, 200, 0.2);
+  --accomplishment-highlight-bg: rgba(180, 180, 200, 0.1);
+  --border: #e5e4e7;
+  --caret-color: rgb(40, 51, 255);
+  --caret-type: bar;
+  --selection-color: rgba(192, 192, 200, 0.2); 
+  --logo-color: #000;
+
+  --font-sans: system-ui, 'Segoe UI', Roboto, Inter, sans-serif;
+  --font-hero: 'Sora', sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--font-sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--selection-color);
+}
+
+html, body {
+  padding: 0;
+  margin: 0;
+  background: var(--bg);
+  height: 100dvh;
+  width: 100dvw;
+  overflow: hidden;
+  overscroll-behavior:none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[data-theme="acid"] {
+  --bg: #bfff00;
+  --select-bg: #000;
+  --select-highlight-bg: rgba(0, 0, 0, 0.1);
+  --accomplishment-highlight-bg: rgba(0, 0, 0, 0.1);
+  --text: #000;
+  --input-text: #fff;
+  --input-bg: #000;
+  --border-color: #000;
+  --caret-color: #fff;
+  --caret-shape: block;
+  --selection-color: rgba(191, 255, 0, 0.33);
+}
+
+[data-theme="midnight"] {
+  --bg: #000;
+  --select-bg: #000;
+  --select-highlight-bg: rgba(255,255,255, 0.1);
+  --accomplishment-highlight-bg: rgba(255,255,255, 0.05);
+  --text: #FFF;
+  --input-text: #fff;
+  --input-bg: #0F0F0F;
+  --border-color: rgba(255,255,255, 0.1);
+  --caret-color: #999;
+  --caret-shape: bar;
+  --selection-color: rgba(255,255,255, 0.1);
+  --logo-color: #FFF;
+}
+
+[data-theme="lilac"] {
+  --bg: #4E4492;
+  --select-bg: #4E4492;
+  --select-highlight-bg: rgba(39, 35, 66, 0.33);
+  --accomplishment-highlight-bg: rgba(39, 35, 66, 0.1);
+  --text: #fff4ac;
+  --input-text: #fff4ac;
+  --input-bg: #272342;
+  --border-color: rgba(255, 244, 172, 0.35);
+  --caret-color: #fff4ac;
+  --caret-shape: bar;
+  --selection-color: rgb(78, 68, 146, 0.75);
+  --logo-color: #fff4ac;
+}

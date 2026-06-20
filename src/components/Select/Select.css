@@ -1,0 +1,54 @@
+.selectbox,
+.selectbox .active-option {
+  width: 4rem;
+  height: 4rem;
+  flex-shrink: 0;
+  background: var(--bg);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--border-color);
+}
+
+.selectbox .active-option:hover {
+  background: var(--select-highlight-bg) !important;
+}
+
+.selectbox .select-options {
+  position: absolute;
+  top: 100%;
+  margin-top: 4px;
+  width: 4rem;
+  left: 0; 
+  right: 0;
+  background: var(--bg);
+  z-index: 20;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--border-color),
+    0 4px 12px rgba(0,0,0,0.33);
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.selectbox .select-options[data-open="true"] {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.selectbox .select-options .select-option {
+  width: 4rem;
+  height: 4rem;
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover,
+  &[data-selected="true"] {
+    background: var(--select-highlight-bg);
+  }
+}
