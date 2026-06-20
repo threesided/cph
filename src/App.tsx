@@ -61,13 +61,13 @@ type AccomplishmentType = keyof typeof selectMap;
 type ThemeType = keyof typeof themesMap;
 
 interface Accomplishment {
-  text: string;
+  note: string;
   tags: AccomplishmentType[];
   created_at: string;
 }
 
 function App() {
-  const [theme, setTheme] = useState<ThemeType>(localStorage.getItem('theme') || '');
+  const [theme, setTheme] = useState<ThemeType>(localStorage.getItem('theme') || 'slate');
   const [selectOpen, setSelectOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [highlightedOption, setHighlightedOption] = useState<number>(0);
@@ -75,9 +75,13 @@ function App() {
   const [inputValue, setInputValue] = useState<string>('');
   const [scrollProgress, setScrollProgress] = useState<number>(0);
 
+  const [authed, setAuthed] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typeSelectRef = useRef<SelectHandle | null>(null);
+
+  const initRef = useRef(false);
 
   const updateType = (type: string) => {
     setSelectedOption(type);
@@ -93,7 +97,7 @@ function App() {
     if (!inputValue) { return; }
 
     const newList: Accomplishment[] = [{
-      text: inputValue,
+      note: inputValue,
       tags: selectedOption ? [selectedOption as AccomplishmentType] : [],
       created_at: new Date().toISOString(),
     }, ...theList];
@@ -116,6 +120,24 @@ function App() {
     }
   }
 
+  const checkAuth = async () => {
+    const authResponse = await fetch('/api/auth');
+    const authJSON = await authResponse.json();
+
+    setAuthed(authJSON.authenticated);
+  };
+
+  const getAccomplishments = async () => {
+    const accResponse = await fetch('/api/accomplishments');
+    const accJSON = await accResponse.json();
+
+    const newList: Accomplishment[] = [
+      ...(accJSON.accomplishments || []), 
+      ...theList
+    ];
+    setTheList(newList);
+  };
+
   useEffect(() => {
     const scrollCheck = () => {
       if (scrollRef.current) {
@@ -131,6 +153,19 @@ function App() {
       }
     };
   }, [selectOpen, highlightedOption]);
+
+  useEffect(() => {
+    if (!initRef.current) {
+      initRef.current = true;
+
+      (async () => {
+        await Promise.allSettled([
+          checkAuth(),
+          getAccomplishments()
+        ])
+      })();
+    }
+  }, []);
 
   const headerSize = window.innerWidth < 513 ? 2 : 4;
   const headerDiff = window.innerWidth < 513 ? 0.25 : 1;
@@ -149,41 +184,43 @@ function App() {
         </div>
       </div>
       <div className="tracker">
-        <div className="taskmaster">
-          <div className="input">
-            <input type="text" 
-              ref={inputRef}
-              value={inputValue} 
-              onChange={(e) => setInputValue(e.target.value)} 
-              onKeyDown={(e) => {
-                const input = e.target as HTMLInputElement;
-                if (e.code === 'Tab') {
-                  e.preventDefault();
-                  typeSelectRef.current?.open();
-                  input.blur();
-                } else if (e.code === 'Enter') {
-                  submitAccomplishment();
-                }
+        {authed && (
+          <div className="taskmaster">
+            <div className="input">
+              <input type="text" 
+                ref={inputRef}
+                value={inputValue} 
+                onChange={(e) => setInputValue(e.target.value)} 
+                onKeyDown={(e) => {
+                  const input = e.target as HTMLInputElement;
+                  if (e.code === 'Tab') {
+                    e.preventDefault();
+                    typeSelectRef.current?.open();
+                    input.blur();
+                  } else if (e.code === 'Enter') {
+                    submitAccomplishment();
+                  }
+                }}
+              />
+            </div>
+            <Select
+              ref={typeSelectRef} 
+              options={selectMap}
+              value={selectedOption}
+              onChange={(type) => {
+                updateType(type);
+                inputRef.current?.focus();
               }}
+              onHighlight={(type) => setHighlightedOption(type)}
             />
+            <div className="submit-button"
+              onClick={submitAccomplishment}><ThumbsUp /></div>
           </div>
-          <Select
-            ref={typeSelectRef} 
-            options={selectMap}
-            value={selectedOption}
-            onChange={(type) => {
-              updateType(type);
-              inputRef.current?.focus();
-            }}
-            onHighlight={(type) => setHighlightedOption(type)}
-          />
-          <div className="submit-button"
-            onClick={submitAccomplishment}><ThumbsUp /></div>
-        </div>
+        )}
         <div className="accomplishments">
           {theList.map((item, index) => {
             return <div className="accomplishment" key={`accomplishment-${index}`}>
-              <div className="accomplishment-text">{item.text}</div>
+              <div className="accomplishment-text">{item.note}</div>
               <div className="datestamp">{item.created_at.split('T')[0]}</div>
               {item.tags.map((tag) => {
                 return (

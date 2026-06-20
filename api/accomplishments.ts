@@ -1,29 +1,57 @@
-// // Import the functions you need from the SDKs you need
-// import { initializeApp } from "firebase/app";
-// import { getAnalytics } from "firebase/analytics";
-// // TODO: Add SDKs for Firebase products that you want to use
-// // https://firebase.google.com/docs/web/setup#available-libraries
+import { Timestamp } from 'firebase-admin/firestore';
+import { db } from '../utils/firebase';
+import { verifyAuth } from '../utils/verifyAuth';
 
-// // Your web app's Firebase configuration
-// // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-// const firebaseConfig = {
-//   apiKey: "AIzaSyCKrK4cvKjJR5KXo2bSQEHdskZHRvujXqI",
-//   authDomain: "creative-power-hour.firebaseapp.com",
-//   projectId: "creative-power-hour",
-//   storageBucket: "creative-power-hour.firebasestorage.app",
-//   messagingSenderId: "34755791244",
-//   appId: "1:34755791244:web:3bb05a4f816bc6f9ce6ea9",
-//   measurementId: "G-3NNYWH2X24"
-// };
+type AccomplishmentInput = {
+  note: string;
+  tags?: string[];
+  created_at?: string;
+};
 
-// // Initialize Firebase
-// const app = initializeApp(firebaseConfig);
-// const analytics = getAnalytics(app);
+function serializeCreatedAt(value: unknown): string {
+  if (value instanceof Timestamp) {
+    return value.toDate().toISOString();
+  }
 
-export async function GET(request: Request) {
-  return new Response('Hello from Vercel!');
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+
+  return '';
+}
+
+export async function GET() {
+  const snapshot = await db
+    .collection('accomplishments')
+    .orderBy('created_at', 'desc')
+    .get();
+  const accomplishments = snapshot.docs.map((doc) => {
+    const data = doc.data();
+
+    return {
+      id: doc.id,
+      note: data.note,
+      tags: data.tags ?? [],
+      created_at: serializeCreatedAt(data.created_at),
+    };
+  });
+
+  return Response.json({ accomplishments });
 }
 
 export async function POST(request: Request) {
-  return new Response('Posted a new accomplishment!');
+  const authResult = await verifyAuth(request);
+  if (authResult instanceof Response) {
+    return authResult;
+  }
+
+  const accomplishment = (await request.json()) as AccomplishmentInput;
+
+  const docRef = await db.collection('accomplishments').add({
+    note: accomplishment.note,
+    tags: accomplishment.tags ?? [],
+    created_at: Timestamp.now(),
+  });
+
+  return Response.json({ id: docRef.id }, { status: 201 });
 }

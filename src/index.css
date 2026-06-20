@@ -46,6 +46,12 @@ html, body {
   box-sizing: border-box;
 }
 
+#root {
+  height: 100dvh;
+  width: 100dvw;
+  overflow: hidden;
+}
+
 [data-theme="acid"] {
   --bg: #bfff00;
   --select-bg: #000;

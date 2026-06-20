@@ -1,6 +1,6 @@
 .app {
   margin: 0 auto;
-  height: 100vh;
+  height: 100dvh;
   width: 100%;
   overflow: auto;
   color: var(--text);
