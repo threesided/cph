@@ -1,14 +1,14 @@
 import { useEffect, useState, useRef, type ReactElement } from 'react';
 
-import { ThumbsUp } from './svg/thumbs-up';
-import { Guitar } from './svg/guitar';
-import { Paintbrush } from './svg/paintbrush';
-import { Notebook } from './svg/notebook';
-import { Joystick } from './svg/joystick';
-import { LaptopCheck } from './svg/laptop-check';
-import { Dot } from './svg/dot';
-import { Plus } from './svg/plus';
-import { Logo } from './svg/logo';
+import { ThumbsUp } from './svg/thumbs-up.jsx';
+import { Guitar } from './svg/guitar.jsx';
+import { Paintbrush } from './svg/paintbrush.jsx';
+import { Notebook } from './svg/notebook.jsx';
+import { Joystick } from './svg/joystick.jsx';
+import { LaptopCheck } from './svg/laptop-check.jsx';
+import { Dot } from './svg/dot.jsx';
+import { Plus } from './svg/plus.jsx';
+import { Logo } from './svg/logo.jsx';
 
 import { Select, type SelectHandle } from './components/Select/Select';
 
@@ -69,7 +69,7 @@ interface Accomplishment {
 function App() {
   const [theme, setTheme] = useState<ThemeType>(localStorage.getItem('theme') || '');
   const [selectOpen, setSelectOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string|null>(null);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [highlightedOption, setHighlightedOption] = useState<number>(0);
   const [theList, setTheList] = useState<Accomplishment[]>(JSON.parse(localStorage.getItem('accomplishments') || '[]'));
   const [inputValue, setInputValue] = useState<string>('');
@@ -79,7 +79,7 @@ function App() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const typeSelectRef = useRef<SelectHandle | null>(null);
 
-  const updateType = (type : string) => {
+  const updateType = (type: string) => {
     setSelectedOption(type);
     setSelectOpen(false);
   }
@@ -92,15 +92,15 @@ function App() {
   const submitAccomplishment = () => {
     if (!inputValue) { return; }
 
-    const newList = [{
+    const newList: Accomplishment[] = [{
       text: inputValue,
-      tags: [selectedOption],
+      tags: selectedOption ? [selectedOption as AccomplishmentType] : [],
       created_at: new Date().toISOString(),
     }, ...theList];
 
     setTheList(newList);
     setInputValue('');
-    setSelectOpen(null);
+    setSelectOpen(false);
     setSelectedOption(null);
 
     localStorage.setItem('accomplishments', JSON.stringify(newList));
@@ -111,17 +111,19 @@ function App() {
       inputRef.current.scrollIntoView({behavior: 'smooth', block: 'end'});
 
       scrollRef.current?.addEventListener('scrollend', () => {
-        inputRef.current.focus();
+        inputRef.current?.focus();
       }, {once: true});
     }
   }
 
   useEffect(() => {
-    const scrollCheck = (e) => {
-      setScrollProgress(scrollRef.current.scrollTop);
+    const scrollCheck = () => {
+      if (scrollRef.current) {
+        setScrollProgress(scrollRef.current.scrollTop);
+      }
     };
 
-    scrollRef.current.addEventListener('scroll', scrollCheck);
+    scrollRef.current?.addEventListener('scroll', scrollCheck);
 
     return () => {
       if (scrollRef.current) {

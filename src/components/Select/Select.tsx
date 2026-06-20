@@ -1,6 +1,6 @@
 import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 
-import {Dot} from '../../svg/Dot.jsx';
+import { Dot } from '../../svg/dot.jsx';
 
 import './Select.css';
 
@@ -30,16 +30,16 @@ export const Select = forwardRef<SelectHandle, SelectProps>(function Select({
   const updateType = (type : string) => {
     setSelectedOption(type);
     setSelectOpen(false);
-    onChange(type);
+    onChange?.(type);
   }
 
-  const updateHighlightedOption = (index) => {
+  const updateHighlightedOption = (index : number) => {
     setHighlightedOption(index);
-    onHighlight(index);
+    onHighlight?.(index);
   }
 
   useEffect(() => {
-    const keydownCheck = (e) => {
+    const keydownCheck = (e : KeyboardEvent) => {
       if (selectOpen) {
         e.preventDefault();
         e.stopPropagation();
@@ -48,8 +48,10 @@ export const Select = forwardRef<SelectHandle, SelectProps>(function Select({
         } else if (e.code === 'ArrowUp') {
           setHighlightedOption(prev => prev - 1 < 0 ? selectOptionsCount - 1 : prev - 1);
         } else if (e.code === 'Enter') {
-          updateType(Object.keys(options)[highlightedOption]);
-          onChange(Object.keys(options)[highlightedOption]);
+          if (!!options) {
+            updateType(Object.keys(options)[highlightedOption]);
+            onChange?.(Object.keys(options)[highlightedOption]);
+          }
         } else if (e.code === 'Escape') {
           setSelectOpen(false);
         }
@@ -79,7 +81,10 @@ export const Select = forwardRef<SelectHandle, SelectProps>(function Select({
         e.stopPropagation();
         setSelectOpen(!selectOpen);
       }}>
-        {options[selectedOption] || <Dot />}
+        {selectedOption && options[selectedOption]
+          ? options[selectedOption] 
+          : <Dot />
+        }
       </div>
       <div className="select-options" data-open={selectOpen}>
         {Object.keys(options).map((selectOption, index) => (
