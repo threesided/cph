@@ -11,6 +11,7 @@ import { Plus } from './svg/plus.jsx';
 import { Logo } from './svg/logo.jsx';
 
 import { Select, type SelectHandle } from './components/Select/Select';
+import { ensureSignedIn, getAuthHeaders } from './firebase';
 
 import './App.css';
 
@@ -61,6 +62,7 @@ type AccomplishmentType = keyof typeof selectMap;
 type ThemeType = keyof typeof themesMap;
 
 interface Accomplishment {
+  id?: string;
   note: string;
   tags: AccomplishmentType[];
   created_at: string;
@@ -93,14 +95,16 @@ function App() {
     localStorage.setItem('theme', type);
   };
 
-  const submitAccomplishment = () => {
+  const submitAccomplishment = async () => {
     if (!inputValue) { return; }
 
-    const newList: Accomplishment[] = [{
+    const newAccomplishment = {
       note: inputValue,
       tags: selectedOption ? [selectedOption as AccomplishmentType] : [],
       created_at: new Date().toISOString(),
-    }, ...theList];
+    };
+    
+    const newList: Accomplishment[] = [newAccomplishment, ...theList];
 
     setTheList(newList);
     setInputValue('');
@@ -108,6 +112,18 @@ function App() {
     setSelectedOption(null);
 
     localStorage.setItem('accomplishments', JSON.stringify(newList));
+
+    await fetch('/api/accomplishments', {
+      method: 'POST',
+      headers: await getAuthHeaders({
+        'Content-Type': 'application/json',
+      }),
+      body: JSON.stringify({
+        note: newAccomplishment.note,
+        tags: newAccomplishment.tags,
+      }),
+    });
+
   };
 
   const focusInput = () => {
@@ -121,7 +137,9 @@ function App() {
   }
 
   const checkAuth = async () => {
-    const authResponse = await fetch('/api/auth');
+    const authResponse = await fetch('/api/auth', {
+      headers: await getAuthHeaders(),
+    });
     const authJSON = await authResponse.json();
 
     setAuthed(authJSON.authenticated);
@@ -133,9 +151,9 @@ function App() {
 
     const newList: Accomplishment[] = [
       ...(accJSON.accomplishments || []), 
-      ...theList
     ];
     setTheList(newList);
+    localStorage.setItem('accomplishments', JSON.stringify(newList));
   };
 
   useEffect(() => {
@@ -159,6 +177,7 @@ function App() {
       initRef.current = true;
 
       (async () => {
+        await ensureSignedIn();
         await Promise.allSettled([
           checkAuth(),
           getAccomplishments()
@@ -191,14 +210,14 @@ function App() {
                 ref={inputRef}
                 value={inputValue} 
                 onChange={(e) => setInputValue(e.target.value)} 
-                onKeyDown={(e) => {
+                onKeyDown={async (e) => {
                   const input = e.target as HTMLInputElement;
                   if (e.code === 'Tab') {
                     e.preventDefault();
                     typeSelectRef.current?.open();
                     input.blur();
                   } else if (e.code === 'Enter') {
-                    submitAccomplishment();
+                    await submitAccomplishment();
                   }
                 }}
               />
@@ -214,12 +233,12 @@ function App() {
               onHighlight={(type) => setHighlightedOption(type)}
             />
             <div className="submit-button"
-              onClick={submitAccomplishment}><ThumbsUp /></div>
+              onClick={async () => {await submitAccomplishment()}}><ThumbsUp /></div>
           </div>
         )}
         <div className="accomplishments">
           {theList.map((item, index) => {
-            return <div className="accomplishment" key={`accomplishment-${index}`}>
+            return <div className="accomplishment" key={`accomplishment-${item.id ? item.id : `temp__${index}`}`}>
               <div className="accomplishment-text">{item.note}</div>
               <div className="datestamp">{item.created_at.split('T')[0]}</div>
               {item.tags.map((tag) => {

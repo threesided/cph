@@ -51,6 +51,7 @@ export async function POST(request: Request) {
     note: accomplishment.note,
     tags: accomplishment.tags ?? [],
     created_at: Timestamp.now(),
+    userId: authResult.uid,
   });
 
   return Response.json({ id: docRef.id }, { status: 201 });
