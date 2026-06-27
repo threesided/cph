@@ -9,11 +9,15 @@ import { LaptopCheck } from './svg/laptop-check.jsx';
 import { Dot } from './svg/dot.jsx';
 import { Plus } from './svg/plus.jsx';
 import { Logo } from './svg/logo.jsx';
+import { ArrowRight } from './svg/arrow-right.jsx';
 
 import { Select, type SelectHandle } from './components/Select/Select';
-import { ensureSignedIn, getAuthHeaders } from './firebase';
+import { auth, getAuthHeaders } from './firebase';
+import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 
 import './App.css';
+
+const AUTH_CACHE_KEY = 'powerhour-authed';
 
 const selectMap : {[key: string] : ReactElement} = {
   'art': <Paintbrush />,
@@ -76,14 +80,15 @@ function App() {
   const [theList, setTheList] = useState<Accomplishment[]>(JSON.parse(localStorage.getItem('accomplishments') || '[]'));
   const [inputValue, setInputValue] = useState<string>('');
   const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const [showLogin, setShowLogin] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
 
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed] = useState(() => localStorage.getItem(AUTH_CACHE_KEY) === 'true');
 
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typeSelectRef = useRef<SelectHandle | null>(null);
-
-  const initRef = useRef(false);
 
   const updateType = (type: string) => {
     setSelectedOption(type);
@@ -136,13 +141,26 @@ function App() {
     }
   }
 
-  const checkAuth = async () => {
-    const authResponse = await fetch('/api/auth', {
-      headers: await getAuthHeaders(),
-    });
-    const authJSON = await authResponse.json();
+  const setAuthedState = (isAuthed: boolean) => {
+    setAuthed(isAuthed);
+    if (isAuthed) {
+      localStorage.setItem(AUTH_CACHE_KEY, 'true');
+    } else {
+      localStorage.removeItem(AUTH_CACHE_KEY);
+    }
+  };
 
-    setAuthed(authJSON.authenticated);
+  const login = async () => {
+    try {
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      if (!user.isAnonymous) {
+        setAuthedState(true);
+        setShowLogin(false);
+        getAccomplishments();
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const getAccomplishments = async () => {
@@ -173,17 +191,33 @@ function App() {
   }, [selectOpen, highlightedOption]);
 
   useEffect(() => {
-    if (!initRef.current) {
-      initRef.current = true;
-
-      (async () => {
-        await ensureSignedIn();
-        await Promise.allSettled([
-          checkAuth(),
-          getAccomplishments()
-        ])
-      })();
+    if (localStorage.getItem(AUTH_CACHE_KEY) === 'true') {
+      getAccomplishments();
     }
+
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      const isAuthed = !!firebaseUser && !firebaseUser.isAnonymous;
+      setAuthedState(isAuthed);
+      if (isAuthed) {
+        getAccomplishments();
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const keyListener = (e: KeyboardEvent) => {
+      if (e.key === 'l' && e.shiftKey && e.metaKey) {
+        setShowLogin(prev => !prev);
+      }
+    };
+
+    document.addEventListener('keydown', keyListener);
+
+    return () => {
+      document.removeEventListener('keydown', keyListener);
+    };
   }, []);
 
   const headerSize = window.innerWidth < 513 ? 2 : 4;
@@ -252,6 +286,13 @@ function App() {
           })}
         </div>
         <div className="logo-footer"><Logo /></div>
+        {showLogin && !authed && (
+          <div className="login">
+            <span>U:</span><input type="text" onChange={(e) => setEmail(e.target.value)}/>
+            <span>P:</span><input type="password" onChange={(e) => setPassword(e.target.value)}/>
+            <span onClick={login}><ArrowRight /></span>
+          </div>
+        )}
       </div>
       <div className="new-shortcut" onClick={focusInput}><Plus /></div>
       <div className="theme-changer">

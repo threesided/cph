@@ -27,4 +27,5 @@ declare module '*.jsx' {
   export const LaptopCheck: SvgIcon;
   export const Plus: SvgIcon;
   export const Logo: SvgIcon;
+  export const ArrowRight: SvgIcon;
 }
