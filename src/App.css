@@ -246,6 +246,12 @@ input {
   z-index: 1;
   position: relative;
   background: var(--bg);
+
+  &.placeholder {
+    svg {
+      opacity: 0.2;
+    }
+  }
 }
 
 .new-shortcut {

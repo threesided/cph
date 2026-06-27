@@ -282,6 +282,11 @@ function App() {
                   </div>
                 )
               })}
+              {!item.tags.length && (
+                <div className="accomplishment-icon placeholder">
+                  <Dot />
+                </div>
+              )}
             </div>
           })}
         </div>
