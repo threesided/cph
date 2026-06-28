@@ -1,5 +1,5 @@
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { auth } from './firebase';
+import { auth } from './firebase.js';
 
 export async function verifyAuth(request: Request): Promise<DecodedIdToken | Response> {
   const authorization = request.headers.get('Authorization');

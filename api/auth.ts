@@ -1,4 +1,4 @@
-import { verifyAuth } from '../utils/verifyAuth';
+import { verifyAuth } from '../utils/verifyAuth.js';
 
 export async function GET(request: Request) {
   const authResult = await verifyAuth(request);

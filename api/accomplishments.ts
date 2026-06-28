@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { db } from '../utils/firebase';
-import { verifyAuth } from '../utils/verifyAuth';
+import { db } from '../utils/firebase.js';
+import { verifyAuth } from '../utils/verifyAuth.js';
 
 type AccomplishmentInput = {
   note: string;
