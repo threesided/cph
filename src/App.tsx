@@ -191,9 +191,7 @@ function App() {
   }, [selectOpen, highlightedOption]);
 
   useEffect(() => {
-    if (localStorage.getItem(AUTH_CACHE_KEY) === 'true') {
-      getAccomplishments();
-    }
+    getAccomplishments();
 
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       const isAuthed = !!firebaseUser && !firebaseUser.isAnonymous;
