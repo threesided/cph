@@ -297,7 +297,9 @@ function App() {
           </div>
         )}
       </div>
-      <div className="new-shortcut" onClick={focusInput}><Plus /></div>
+      {authed && (
+        <div className="new-shortcut" onClick={focusInput}><Plus /></div>
+      )}
       <div className="theme-changer">
         <Select 
           options={themesMap}
