@@ -55,7 +55,7 @@ input {
     content: '';
     position: absolute;
     width: 1px;
-    height: 100dvh;
+    height: calc(100dvh + 128px);
     background: var(--border-color);
     top: 0;
     z-index: 1;
